@@ -170,7 +170,7 @@ else:
             display_data = []
             
             for r in db_data:
-                if len(r) >= 3 and str(r[0]).lower() != "timestamp":
+                if len(r) >= 3 and str(r[0]).lower() != "Timestamp":
                     display_data.append({"Timestamp": r[0], "Student Username": r[1], "Score Obtained": f"{r[2]} Points"})
             
             for r in st.session_state.global_results_pool:
