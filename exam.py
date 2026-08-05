@@ -71,14 +71,14 @@ def get_student_users_from_sheet():
         pass
     return base_users
 
-def save_result_to_sheet(username, score):
-    timestamp = get_mm_now().strftime("%Y-%m-%d %H:%M:%S")
-    new_record = [timestamp, username, score]
+def save_result_to_sheet(Username, Score):
+    Timestamp = get_mm_now().strftime("%Y-%m-%d %H:%M:%S")
+    new_record = [Timestamp, Username, Score]
     if new_record not in st.session_state.global_results_pool:
         st.session_state.global_results_pool.append(new_record)
         
     try:
-        payload = json.dumps({"timestamp": timestamp, "username": username, "score": int(score)}).encode('utf-8')
+        payload = json.dumps({"Timestamp": Timestamp, "Username": Username, "Score": int(score)}).encode('utf-8')
         req = urllib.request.Request(WEB_APP_URL, data=payload, headers={'Content-Type': 'application/json'}, method='POST')
         urllib.request.urlopen(req, timeout=3)
     except:
