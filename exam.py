@@ -78,7 +78,7 @@ def save_result_to_sheet(Username, Score):
         st.session_state.global_results_pool.append(new_record)
         
     try:
-        payload = json.dumps({"Timestamp": Timestamp, "Username": Username, "Score": int(score)}).encode('utf-8')
+        payload = json.dumps({"Timestamp": Timestamp, "Username": Username, "Score": int(Score)}).encode('utf-8')
         req = urllib.request.Request(WEB_APP_URL, data=payload, headers={'Content-Type': 'application/json'}, method='POST')
         urllib.request.urlopen(req, timeout=3)
     except:
