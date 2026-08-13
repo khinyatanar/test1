@@ -79,6 +79,17 @@ def save_result_to_sheet(username, score):
 
 # --- APP CONFIGURATION ---
 st.set_page_config(page_title="Secure Exam Terminal", page_icon="🔐", layout="centered")
+st.markdown(
+    """
+    <style>
+    /* Username နဲ့ Password Input box များကို Width သတ်မှတ်ရန် */
+    div[data-testid="stTextInput"] {
+        max-width: 350px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "user_role" not in st.session_state: st.session_state.user_role = None
@@ -111,30 +122,50 @@ if not st.session_state.logged_in:
     username = st.text_input("Username (Case-sensitive)")
     password = st.text_input("Password", type="password")
     
-    if st.button("Secure Login", type="primary"):
-        if username == "admin" and password == "admin123":
-            st.session_state.logged_in = True
-            st.session_state.user_role = "admin"
-            st.session_state.username = "admin"
-            st.rerun()
-        else:
-            valid_students = get_student_users_from_sheet()
-            if username in valid_students and str(password).strip() == str(valid_students[username]).strip():
+   
+if st.button("Secure Login", type="primary"):
+        entered_user = username.strip()
+        entered_pass = str(password).strip()
+
+        # Google Sheet (Sheet3) မှ User အားလုံးကို Header မပါဘဲ တိုက်ရိုက်ဖတ်ယူခြင်း
+        all_users = {}
+        try:
+            # header=None ထည့်လိုက်ခြင်းဖြင့် ပထမဆုံး row ကို header လို့ မသတ်မှတ်တော့ဘဲ ဒေတာအဖြစ် အကုန်ဖတ်မည်
+            df_users = pd.read_csv(CSV_USERS_URL, header=None)
+            if df_users is not None and not df_users.empty:
+                for _, row in df_users.iterrows():
+                    if len(row) >= 2 and pd.notna(row.iloc[0]) and pd.notna(row.iloc[1]):
+                        u_val = str(row.iloc[0]).strip()
+                        p_val = str(row.iloc[1]).strip()
+                        # 'Username' ဆိုတဲ့ ခေါင်းစဉ်ပါလာလျှင် ကျော်ရန်
+                        if u_val.lower() != "username":
+                            all_users[u_val] = p_val
+        except Exception as e:
+            pass
+
+        # Login စစ်ဆေးခြင်း
+        if entered_user in all_users and entered_pass == all_users[entered_user]:
+            if entered_user.lower() == "admin":
+                st.session_state.logged_in = True
+                st.session_state.user_role = "admin"
+                st.session_state.username = "admin"
+                st.rerun()
+            else:
                 sheet_data = get_results_from_sheet()
                 submitted_users = [str(r[1]) for r in sheet_data if len(r) > 1]
                 submitted_users += [str(r[1]) for r in st.session_state.global_results_pool]
                 
-                if username in submitted_users:
-                    st.error(f"❌ Access Denied: User '{username}' has already submitted the exam. Account Locked.")
+                if entered_user in submitted_users:
+                    st.error(f"❌ Access Denied: User '{entered_user}' has already submitted the exam. Account Locked.")
                 else:
                     st.session_state.logged_in = True
                     st.session_state.user_role = "student"
-                    st.session_state.username = username
+                    st.session_state.username = entered_user
                     st.session_state.submitted = False
                     st.session_state.start_time = get_mm_now()
                     st.rerun()
-            else:
-                st.error("Invalid credentials. Please try again.")
+        else:
+            st.error("Invalid credentials. Please try again.")
 else:
     if st.sidebar.button("Log Out"):
         st.session_state.logged_in = False
