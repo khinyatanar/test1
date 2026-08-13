@@ -49,11 +49,7 @@ def get_questions_from_sheet():
     return []  
 
 def get_student_users_from_sheet():
-    base_users = {
-        "student": "student123",
-        "Roll1": "12345",
-        "Roll2": "12345"
-    }
+    base_users = {}  
     try:
         df = pd.read_csv(CSV_USERS_URL)
         if df is not None and not df.empty:
