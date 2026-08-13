@@ -46,10 +46,7 @@ def get_questions_from_sheet():
     except:
         pass
         
-    return [
-        {"q": "Nuclear shielding matching: Which material is most effective for neutron attenuation?", "options": ["Lead (Pb)", "Water / Paraffin", "Aluminum (Al)", "Copper (Cu)"], "correct": "Water / Paraffin"},
-        {"q": "The 555 Timer IC operating in Astable mode produces which type of output waveform?", "options": ["Sine Wave", "Square Wave", "Triangular Wave", "Sawtooth Wave"], "correct": "Square Wave"}
-    ]
+    return []  
 
 def get_student_users_from_sheet():
     base_users = {
