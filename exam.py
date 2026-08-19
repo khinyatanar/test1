@@ -205,10 +205,51 @@ else:
                 st.table(display_data)
             else:
                 st.info("💡 ဖြေဆိုထားသော ကျောင်းသား မှတ်တမ်း မရှိသေးပါ။")
+                with tab2:
+            st.subheader("➕ Inject New Question to Sheet2")
+            st.info("💡 ဤနေရာမှ တဆင့် Google Sheet (Sheet2) သို့ မေးခွန်းအသစ်များကို တိုက်ရိုက် ထည့်သွင်းနိုင်ပါသည်။")
+            
+            with st.form("add_question_form"):
+                new_q = st.text_area("မေးခွန်း (Question)")
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    opt1 = st.text_input("Option A")
+                    opt2 = st.text_input("Option B")
+                with col_b:
+                    opt3 = st.text_input("Option C")
+                    opt4 = st.text_input("Option D")
                 
-        with tab2:
-            st.subheader("Inject New Question to Pool Permanently")
-            st.info("💡 ဤနေရာတွင် မေးခွန်းအသစ်များကို Google Sheet (Sheet2) ထဲသို့ တိုက်ရိုက်သွားရောက်တိုးပေးရပါမည်။")
+                correct_ans = st.text_input("အမှန်ဖြေ (Correct Answer - အထက်ပါ Options များထဲမှ တစ်ခုအတိုင်း အတိအကျရေးပါ)")
+                
+                submitted_q = st.form_submit_button("Google Sheet သို့ မေးခွန်းအသစ် ထည့်မည်")
+                
+                if submitted_q:
+                    if new_q and opt1 and opt2 and opt3 and opt4 and correct_ans:
+                        try:
+                            payload = json.dumps({
+                                "action": "add_question",
+                                "q": new_q,
+                                "opt1": opt1,
+                                "opt2": opt2,
+                                "opt3": opt3,
+                                "opt4": opt4,
+                                "correct": correct_ans
+                            }).encode('utf-8')
+                            
+                            req = urllib.request.Request(WEB_APP_URL, data=payload, headers={'Content-Type': 'application/json'}, method='POST')
+                            response = urllib.request.urlopen(req, timeout=5)
+                            res_data = json.loads(response.read().decode('utf-8'))
+                            
+                            if res_data.get("status") == "success":
+                                st.success("✅ မေးခွန်းအသစ် Google Sheet သို့ အောင်မြင်စွာ ရောက်ရှိသွားပါပြီ။")
+                                time.sleep(1)
+                                st.rerun()
+                            else:
+                                st.error("❌ မေးခွန်းထည့်သွင်းမှု မအောင်မြင်ပါ။")
+                        except Exception as e:
+                            st.error(f"⚠️ ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်: {e}")
+                    else:
+                        st.warning("⚠️ အချက်အလက်အားလုံးကို ပြည့်စုံစွာ ဖြည့်စွက်ပေးပါ။")
                     
     # --- STUDENT PANEL ---
     elif st.session_state.user_role == "student":
