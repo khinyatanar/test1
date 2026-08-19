@@ -45,24 +45,7 @@ def get_questions_from_sheet():
                 return sheet_questions
     except:
         pass
-        
-    return []  
-
-def get_student_users_from_sheet():
-    base_users = {}  
-    try:
-        df = pd.read_csv(CSV_USERS_URL)
-        if df is not None and not df.empty:
-            df.columns = df.columns.str.strip()
-            user_col = [c for c in df.columns if 'user' in c.lower()][0]
-            pwd_col = [c for c in df.columns if 'pass' in c.lower()][0]
-            
-            for _, row in df.iterrows():
-                if pd.notna(row[user_col]) and pd.notna(row[pwd_col]):
-                    base_users[str(row[user_col]).strip()] = str(row[pwd_col]).strip()
-    except:
-        pass
-    return base_users
+    return []
 
 def save_result_to_sheet(username, score):
     timestamp = get_mm_now().strftime("%Y-%m-%d %H:%M:%S")
@@ -79,10 +62,10 @@ def save_result_to_sheet(username, score):
 
 # --- APP CONFIGURATION ---
 st.set_page_config(page_title="Secure Exam Terminal", page_icon="🔐", layout="centered")
+
 st.markdown(
     """
     <style>
-    /* Username နဲ့ Password Input box များကို Width သတ်မှတ်ရန် */
     div[data-testid="stTextInput"] {
         max-width: 350px;
     }
@@ -96,33 +79,29 @@ if "user_role" not in st.session_state: st.session_state.user_role = None
 if "username" not in st.session_state: st.session_state.username = None
 if "submitted" not in st.session_state: st.session_state.submitted = False
 
-# 1. Sidebar မှာ Logo ပေါ်စေရန် 
 with st.sidebar:
     try:
-        st.image("Pu-logo.jpg", use_container_width=True)
-    except Exception:
-        try:
-            st.image("pu-logo.jpg", use_container_width=True)
-        except Exception:
-            pass
+        st.image("pu_logo.png", use_container_width=True)
+    except:
+        pass
     st.markdown("<h4 style='text-align: center;'>Pyay University</h4>", unsafe_allow_html=True)
     st.markdown("---")
-# Main Page Header Logo
+
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     try:
-        st.image("pu-logo.jpg", width=150)
+        st.image("pu_logo.png", width=150)
     except:
         pass
 
 if not st.session_state.logged_in:
-    st.title("🔐 Secure Online Examination System")
-    st.subheader("Department of Physics, Pyay University")
+    st.title("🔐 Pyay University Online Examination Portal")
+    st.subheader("Center for Human Resource Development")
     
     username = st.text_input("Username (Case-sensitive)")
     password = st.text_input("Password", type="password")
-     
-if st.button("Secure Login", type="primary"):
+    
+    if st.button("Secure Login", type="primary"):
         entered_user = username.strip()
         entered_pass = str(password).strip()
 
@@ -174,9 +153,8 @@ else:
         if "start_time" in st.session_state: del st.session_state.start_time
         st.rerun()
         
-    # --- ADMIN PANEL ---
     if st.session_state.user_role == "admin":
-        st.title("👩‍🏫 Admin Control Panel (Secure Mode)")
+        st.title("👩‍🏫 Administrative Control Panel: Question Bank & Result Management")
         
         st.sidebar.subheader("⚙️ System Control")
         if st.sidebar.button("♻️ Force Reboot System", type="secondary"):
@@ -193,7 +171,7 @@ else:
             display_data = []
             
             for r in db_data:
-                if len(r) >= 3 and str(r[0]).lower() != "Timestamp":
+                if len(r) >= 3 and str(r[0]).lower() != "timestamp":
                     display_data.append({"Timestamp": r[0], "Student Username": r[1], "Score Obtained": f"{r[2]} Points"})
             
             for r in st.session_state.global_results_pool:
@@ -205,6 +183,7 @@ else:
                 st.table(display_data)
             else:
                 st.info("💡 ဖြေဆိုထားသော ကျောင်းသား မှတ်တမ်း မရှိသေးပါ။")
+                
         with tab2:
             st.subheader("➕ Inject New Question to Sheet2")
             st.info("💡 ဤနေရာမှ တဆင့် Google Sheet (Sheet2) သို့ မေးခွန်းအသစ်များကို တိုက်ရိုက် ထည့်သွင်းနိုင်ပါသည်။")
@@ -250,16 +229,14 @@ else:
                             st.error(f"⚠️ ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်: {e}")
                     else:
                         st.warning("⚠️ အချက်အလက်အားလုံးကို ပြည့်စုံစွာ ဖြည့်စွက်ပေးပါ။")
-                    
-    # --- STUDENT PANEL ---
+                
     elif st.session_state.user_role == "student":
-        st.title("✍️ Student Examination Terminal")
+        st.title("✍️ Student Examination Dashboard ")
         st.write(f"Active Session User: **{st.session_state.username}**")
         
         all_questions = get_questions_from_sheet()
         
         if not st.session_state.submitted:
-            # --- TIMER LOGIC ---
             if "start_time" in st.session_state:
                 end_time = st.session_state.start_time + timedelta(minutes=EXAM_DURATION_MINUTES)
                 now = get_mm_now()
@@ -287,7 +264,6 @@ else:
                 else:
                     st.sidebar.warning(timer_text)
             
-            # --- QUESTIONS UI ---
             if all_questions:
                 score = 0
                 user_answers = {}
@@ -308,7 +284,7 @@ else:
                     st.session_state.final_score = score
                     st.rerun()
             else:
-                st.warning("⚠️ မေးခွန်းများ Cloud တွင်းမှ ဆွဲယူနေဆဲ ဖြစ်ပါသည်။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။")
+                st.warning("⚠️ မေးခွန်းများ Google Sheet ထဲတွင် မတွေ့ရှိရသေးပါ။ ကျေးဇူးပြု၍ Sheet2 ကို စစ်ဆေးပါ။")
         else:
             disp_score = st.session_state.final_score if 'final_score' in st.session_state else 0
             st.success(f"🎉 သင်၏ ရမှတ်မှာ {disp_score}/{len(all_questions)} ဖြစ်ပြီး စနစ်မှ သိမ်းဆည်းကာ Lock ချထားပြီး ဖြစ်ပါသည်။")
